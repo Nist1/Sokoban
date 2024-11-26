@@ -1,7 +1,5 @@
 module GameField where
 
-import Data.List
-
 -- Тип данных для представления элементов на игровом поле
 data GameElement = Wall
                  | Player
@@ -39,30 +37,6 @@ data GameField = GameField {
     playerPosition :: PlayerPosition
 } deriving (Show)
 
--- Функция для нахождения позиции игрока при загрузке файла
-findPlayerPosition :: Field -> PlayerPosition
-findPlayerPosition field =
-    let playerRow = findIndex (elem Player) field
-        playerCol = case playerRow of
-            Just row -> elemIndex Player (field !! row)
-            Nothing  -> Nothing
-    in case (playerRow, playerCol) of
-        (Just row, Just col) -> (row, col)
-        _                    -> error "Player position not found"
-
--- Функция загрузки игрового уровня
-loadLevel :: FilePath -> IO GameField
-loadLevel file = do
-    content <- readFile file
-    let linesOfFile = lines content
-    let field = map (map toGameElement) linesOfFile
-    let playerPos = findPlayerPosition field
-    return (GameField field playerPos)
-
 -- Функция печати игрового поля в консоль
 printGameField :: GameField -> IO ()
 printGameField (GameField field _) = mapM_ (putStrLn . map showElement) field
-
-main = do
-    gameField <- loadLevel "../levels/1.txt"
-    printGameField gameField
