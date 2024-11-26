@@ -27,15 +27,19 @@ showElement Goal      = 'x'
 showElement BoxOnGoal = 'G'
 showElement Empty     = ' '
 
-type Line = [GameElement]        -- Тип для представления ряда игрового поля
-type Field = [Line]              -- Тип для представления всего поля
-type PlayerPosition = (Int, Int) -- Тип для представления координат игрока на поле
+type Line = [GameElement]         -- Тип для представления ряда игрового поля
+type Field = [Line]               -- Тип для представления всего поля
+type ElementPosition = (Int, Int) -- Тип для представления координат игрока на поле
 
 -- Тип для представления игрового поля. Содержит поле и позицию игрока
 data GameField = GameField {
     currentField :: Field,
-    playerPosition :: PlayerPosition
+    playerPosition :: ElementPosition
 } deriving (Show)
+
+-- Функция проверки, что уровень решен
+isLevelSolved :: GameField -> [ElementPosition] -> Bool
+isLevelSolved (GameField field _) = all (\(row, col) -> field !! row !! col == BoxOnGoal)
 
 -- Функция печати игрового поля в консоль
 printGameField :: GameField -> IO ()

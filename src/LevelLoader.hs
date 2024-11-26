@@ -4,7 +4,7 @@ import Data.List
 import GameField
 
 -- Функция для нахождения позиции игрока при загрузке файла
-findPlayerPosition :: Field -> PlayerPosition
+findPlayerPosition :: Field -> ElementPosition
 findPlayerPosition field =
     let playerRow = findIndex (elem Player) field
         playerCol = case playerRow of
@@ -13,6 +13,11 @@ findPlayerPosition field =
     in case (playerRow, playerCol) of
         (Just row, Just col) -> (row, col)
         _                    -> error "Player position not found"
+
+-- Функция для получения списка меток
+findGoalPositions :: GameField -> [ElementPosition]
+findGoalPositions (GameField field _ ) = 
+    [(row, col) | (row, line) <- zip [0..] field, (col, elem) <- zip[0..] line, elem == Goal || elem == BoxOnGoal]
 
 -- Функция загрузки игрового уровня
 loadLevel :: FilePath -> IO GameField
