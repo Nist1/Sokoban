@@ -38,6 +38,7 @@ data GameField = GameField {
 } deriving (Show)
 
 -- Функция проверки, что уровень решен
+-- Использована n-редукция для сравнения положения меток и положения ящиков 
 isLevelSolved :: GameField -> [ElementPosition] -> Bool
 isLevelSolved (GameField field _) = all (\(row, col) -> field !! row !! col == BoxOnGoal)
 
