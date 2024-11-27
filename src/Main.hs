@@ -1,5 +1,5 @@
 import Prelude hiding (Left, Right)
-ipmort System.Console.Terminfo
+import System.Console.Terminfo
 import System.IO (hFlush, stdin)
 import Control.Monad (when)
 
