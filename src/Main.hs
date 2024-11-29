@@ -1,6 +1,6 @@
 import Prelude hiding (Left, Right)
---import System.Console.Terminfo.Base
 import System.IO (hSetEcho, stdin)
+import System.Console.ANSI
 
 
 import GameField
@@ -9,27 +9,27 @@ import Move
 
 main :: IO ()
 main = do
+    hSetEcho stdin True
     putStrLn "Choose level 1 - 15:"
     l <- getLine
     let level = chooseLevel l
     gameField <- loadLevel level
     let goals = findGoalPositions gameField
-    --setupTerm
     gameLoop level gameField goals
-    --cleanUpTerm
 
 gameLoop :: FilePath -> GameField -> [ElementPosition] -> IO ()
 gameLoop level gameField goals = do
     --putStrLn "\ESC[2J" (Должно работать на Linux (Либо искать способ очистки предыдущего вывода)| На Windows не работает)
+    clearScreen
+    setCursorPosition 0 0
     printGameField gameField
     if isLevelSolved gameField goals
         then putStrLn "Level solved successfully! Congratulations!"
         else do
             key <- getKey
             case key of
-                'q' -> return ()
-                'r' -> do
-                    putStrLn "Restarting level..."
+                'q' -> return () -- Выход из игры
+                'r' -> do        -- Рестарт уровня
                     gameField <- loadLevel level
                     gameLoop level gameField goals
                 _ -> do
@@ -43,7 +43,8 @@ gameLoop level gameField goals = do
                         Just dir -> do
                             gameLoop level (handleMovement dir gameField) goals
                         Nothing  -> do
-                            putStrLn "Invalid move. Use 'w', 'a', 's', 'd' keys."
+                            -- При неправильном вводе ничего не происходит,
+                            -- поле выводится в том же состоянии
                             gameLoop level gameField goals
 
 getKey :: IO Char
@@ -53,15 +54,3 @@ getKey = do
     case c of
         '\n' -> getKey  -- Игнорируем символ новой строки и повторяем чтение
         _    -> return c
-
--- setupTerm :: IO ()
--- setupTerm = do
---     setupTermFromEnv
---     setEcho False
---     setCbreak True
-
--- cleanupTerm :: IO ()
--- cleanupTerm = do
---     setEcho True
---     setCbreak False
---     resetTerminalState
