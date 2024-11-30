@@ -71,9 +71,11 @@ move gameElem pos direction gameField =
     let curPosition@(row, col)       = pos
         nextPostion@(newRow, newCol) = advance curPosition direction
         field                        = currentField gameField
+        oldElement                   = getElement curPosition field  -- Запоминаем элемент на старой позиции
+        newElement                   = getElement nextPostion field  -- Запоминаем элемент на новой позиции
         updatedField = if col == newCol
-            then updateRow gameElem (curPosition, nextPostion) field            -- Горизонтальное движение (Left, Right)
-            else updateCol gameElem (curPosition, nextPostion) field            -- Вертикальное движение (Up, Down)
+            then updateRow gameElem oldElement newElement (curPosition, nextPostion) field  -- Горизонтальное движение (Left, Right)
+            else updateCol gameElem oldElement newElement (curPosition, nextPostion) field  -- Вертикальное движение (Up, Down)
     in  GameField {currentField = updatedField, playerPosition = nextPostion}
 
 -- Функция передвижения ящика игроком
@@ -85,26 +87,20 @@ push direction gameField =
     in move Player playerPos direction boxAfterPush
 
 -- Функция для обновления строки игрового поля
-updateRow :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
-updateRow gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
-    let onGoal          = isGoal $ getElement oldPos field
-        toGoal          = isGoal $ getElement newPos field
-        lineFrom        = field !! row
+updateRow :: GameElement -> GameElement -> GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
+updateRow gameElem oldElement newElement (oldPos@(row, col), newPos@(newRow, newCol)) field =
+    let lineFrom        = field !! row
         lineTo          = field !! newRow
-        ifElementOnGoal = if gameElem == Box then BoxOnGoal else Empty 
-        newLineFrom     = updateAt col (if onGoal then Goal else Empty) lineFrom
-        newLineTo       = updateAt newCol (if toGoal then ifElementOnGoal else gameElem) lineTo
+        newLineFrom     = updateAt col (if isGoal oldElement then Goal else Empty) lineFrom  -- Восстановление старого элемента на старой позиции
+        newLineTo       = updateAt newCol (if isGoal newElement then BoxOnGoal else gameElem) lineTo  -- Установка нового элемента на новой позиции
         newField        = updateAt newRow newLineTo . updateAt row newLineFrom $ field
     in  newField
 
 -- Функция для обновления столбца игрового поля
-updateCol :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
-updateCol gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
-    let onGoal          = isGoal $ getElement oldPos field
-        toGoal          = isGoal $ getElement newPos field
-        ifElementOnGoal = if gameElem == Box then BoxOnGoal else Empty 
-        oldLine         = field !! row
-        newLine = updateAt newCol (if toGoal then ifElementOnGoal else gameElem) . updateAt col (if onGoal then Goal else Empty) $ oldLine
+updateCol :: GameElement -> GameElement -> GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
+updateCol gameElem oldElement newElement (oldPos@(row, col), newPos@(newRow, newCol)) field =
+    let oldLine         = field !! row
+        newLine = updateAt newCol (if isGoal newElement then BoxOnGoal else gameElem) . updateAt col (if isGoal oldElement then Goal else Empty) $ oldLine  -- Восстановление старого элемента на старой позиции и установка нового элемента на новой позиции
         newField = updateAt row newLine field
     in  newField
 

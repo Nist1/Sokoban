@@ -1,5 +1,5 @@
 import Prelude hiding (Left, Right)
-import System.IO (hSetEcho, stdin)
+import System.IO (hSetEcho, hSetBuffering, stdin, BufferMode(NoBuffering))
 import System.Console.ANSI
 
 
@@ -9,6 +9,7 @@ import Move
 
 main :: IO ()
 main = do
+    hSetBuffering stdin NoBuffering -- Убирает ожидание символа конца строки
     hSetEcho stdin True
     putStrLn "Choose level 1 - 15:"
     l <- getLine
