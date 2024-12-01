@@ -10,11 +10,11 @@ data MoveDirection = Up
                    | Right deriving (Eq)
 
 -- Вспомогательная функция для вычисления новой позиции элемента в соответствии с заданным направлением
-advance :: ElementPosition -> MoveDirection -> ElementPosition
-advance (row, col) Up    = (row - 1, col)
-advance (row, col) Down  = (row + 1, col)
-advance (row, col) Left  = (row, col - 1)
-advance (row, col) Right = (row, col + 1)
+changePosition :: ElementPosition -> MoveDirection -> ElementPosition
+changePosition (row, col) Up    = (row - 1, col)
+changePosition (row, col) Down  = (row + 1, col)
+changePosition (row, col) Left  = (row, col - 1)
+changePosition (row, col) Right = (row, col + 1)
 
 -- Функция для обновления конкретного элемента на игровом поле 
 updateElem :: Int -> a -> [a] -> [a]
@@ -26,25 +26,25 @@ updateElem = go 0 where
 -- Функция для обновления строки игрового поля
 updateRow :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
 updateRow gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
-    let onGoal         = isGoal $ getElement oldPos field
-        toGoal         = isGoal $ getElement newPos field
+    let isOnGoal       = isGoal $ getElement oldPos field
+        isToGoal       = isGoal $ getElement newPos field
         lineFrom       = field !! row
         lineTo         = field !! newRow
-        fElementOnGoal = if gameElem == Player then PlayerOnGoal else BoxOnGoal
-        newLineFrom    = updateElem col (if onGoal then Goal else Empty) lineFrom
-        newLineTo      = updateElem newCol (if toGoal then fElementOnGoal else gameElem) lineTo
+        elementOnGoal  = if gameElem == Player then PlayerOnGoal else BoxOnGoal
+        newLineFrom    = updateElem col (if isOnGoal then Goal else Empty) lineFrom
+        newLineTo      = updateElem newCol (if isToGoal then elementOnGoal else gameElem) lineTo
         newField       = updateElem newRow newLineTo . updateElem row newLineFrom $ field
     in  newField
 
 -- Функция для обновления столбца игрового поля
 updateCol :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
 updateCol gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
-    let onGoal         = isGoal $ getElement oldPos field
-        toGoal         = isGoal $ getElement newPos field
-        fElementOnGoal = if gameElem == Player then PlayerOnGoal else BoxOnGoal
+    let isOnGoal       = isGoal $ getElement oldPos field
+        isToGoal       = isGoal $ getElement newPos field
+        elementOnGoal  = if gameElem == Player then PlayerOnGoal else BoxOnGoal
         oldLine        = field !! row
-        newLine = updateElem newCol (if toGoal then fElementOnGoal else gameElem)
-            . updateElem col (if onGoal then Goal else Empty) $ oldLine
+        newLine = updateElem newCol (if isToGoal then elementOnGoal else gameElem)
+            . updateElem col (if isOnGoal then Goal else Empty) $ oldLine
         newField = updateElem row newLine field
     in  newField
 
@@ -53,7 +53,7 @@ canMoveTo :: MoveDirection -> GameField -> Bool
 canMoveTo direction gameField =
     let field  = currentField gameField
         pos    = playerPosition gameField
-        newPos = advance pos direction
+        newPos = changePosition pos direction
     in  isEmpty $ getElement newPos field
 
 -- Функция для движения игрока или игрока вместе с ящиком 
@@ -62,7 +62,7 @@ canMoveTo direction gameField =
 move :: GameElement -> ElementPosition -> MoveDirection -> GameField -> GameField
 move gameElem pos direction gameField =
     let curPos@(row, col)        = pos
-        nextPos@(newRow, newCol) = advance curPos direction
+        nextPos@(newRow, newCol) = changePosition curPos direction
         field                    = currentField gameField
         updatedField             = if col == newCol
             then updateRow gameElem (curPos, nextPos) field -- движение по горизонтали
@@ -74,17 +74,17 @@ canPushTo :: MoveDirection -> GameField -> Bool
 canPushTo direction gameField =
     let field        = currentField gameField
         pos          = playerPosition gameField
-        playerNewPos = advance pos direction            -- Новая позиция игрока после передвижения
-        el1           = getElement playerNewPos field
-        boxNewPos    = advance playerNewPos direction   -- Новая позиция ящика после передвижения
-        el2           = getElement boxNewPos field
+        playerNewPos = changePosition pos direction            -- Новая позиция игрока после передвижения
+        el1          = getElement playerNewPos field
+        boxNewPos    = changePosition playerNewPos direction   -- Новая позиция ящика после передвижения
+        el2          = getElement boxNewPos field
     in  isBox el1 && isEmpty el2
 
 -- Функция передвижения ящика игроком
 push :: MoveDirection -> GameField -> GameField
 push direction gameField =
     let playerPos    = playerPosition gameField
-        boxPos       = advance playerPos direction
+        boxPos       = changePosition playerPos direction
         boxAfterPush = move Box boxPos direction gameField
     in  move Player playerPos direction boxAfterPush
 
