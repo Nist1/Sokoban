@@ -24,8 +24,8 @@ updateElem = go 0 where
     go m n y (x:xs) = if m == n then y : xs else x : go (m + 1) n y xs
 
 -- Функция для обновления строки игрового поля
-updateRow :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
-updateRow gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
+updateCol :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
+updateCol gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
     let isOnGoal       = isGoal $ getElement oldPos field
         isToGoal       = isGoal $ getElement newPos field
         lineFrom       = field !! row
@@ -37,8 +37,8 @@ updateRow gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
     in  newField
 
 -- Функция для обновления столбца игрового поля
-updateCol :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
-updateCol gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
+updateRow :: GameElement -> (ElementPosition, ElementPosition) -> Field -> Field
+updateRow gameElem (oldPos@(row, col), newPos@(newRow, newCol)) field =
     let isOnGoal       = isGoal $ getElement oldPos field
         isToGoal       = isGoal $ getElement newPos field
         elementOnGoal  = if gameElem == Player then PlayerOnGoal else BoxOnGoal
@@ -65,8 +65,8 @@ move gameElem pos direction gameField =
         nextPos@(newRow, newCol) = changePosition curPos direction
         field                    = currentField gameField
         updatedField             = if col == newCol
-            then updateRow gameElem (curPos, nextPos) field -- движение по горизонтали
-            else updateCol gameElem (curPos, nextPos) field -- движение по вертикали
+            then updateCol gameElem (curPos, nextPos) field -- движение по вертикали
+            else updateRow gameElem (curPos, nextPos) field -- движение по горизонтали
     in  GameField {currentField = updatedField, playerPosition = nextPos}
 
 -- Функция для проверки, возможно ли толкнуть ящик в заданном направлении
