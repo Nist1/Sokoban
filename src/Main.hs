@@ -1,6 +1,5 @@
 import Prelude hiding (Left, Right)
 import System.IO (hSetEcho, hSetBuffering, stdin, BufferMode(NoBuffering))
-import System.Console.ANSI (clearScreen, setCursorPosition)
 
 import GameField
 import LevelLoader
@@ -19,9 +18,7 @@ main = do
 
 gameLoop :: FilePath -> GameField -> [ElementPosition] -> IO ()
 gameLoop level gameField goals = do
-    --putStrLn "\ESC[2J" (Должно работать на Linux (Либо искать способ очистки предыдущего вывода) | На Windows не работает)
-    clearScreen
-    setCursorPosition 0 0
+    putStr "\ESC[2J\ESC[H"
     printGameField gameField
     if isLevelSolved gameField goals
         then putStrLn "Level solved successfully! Congratulations!"
